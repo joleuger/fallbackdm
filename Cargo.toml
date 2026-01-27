@@ -1,0 +1,24 @@
+[package]
+name = "fallbackdm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Logind-managed fallback graphical session when no compositor is active"
+repository = "https://github.com/yourname/fallbackdm"
+keywords = ["logind", "vt", "seat"]
+categories = ["os::linux-apis"]
+
+[dependencies]
+libc = "0.2"
+log = "0.4"
+env_logger = "0.10"
+anyhow = "1.0"
+dbus = "0.9"
+pam = "0.8"
+time = "0.3" 
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[features]
+default = []
