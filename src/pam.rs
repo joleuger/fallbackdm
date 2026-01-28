@@ -1,11 +1,11 @@
 // this is basically a clone of pam/client.rs with a getenv function.
 
-use std::{ffi::{CStr, CString}};
+use std::ffi::{CStr, CString};
 
 use libc::{c_int, c_void, calloc, free, size_t, strdup};
 
-use pam::*;
 use pam::ffi::pam_conv;
+use pam::*;
 use std::mem;
 
 /// Main struct to authenticate a user
@@ -43,8 +43,6 @@ pub struct NoPasswordClient<'a> {
     has_open_session: bool,
     last_code: PamReturnCode,
 }
-
-
 
 impl<'a> NoPasswordClient<'a> {
     /// Create a new `Client` with the given service name
@@ -90,35 +88,34 @@ impl<'a> NoPasswordClient<'a> {
         Ok(())
     }
 
-
     // Utility function to set an environment variable in PAM and the process
     pub fn get_env(&mut self, key: &str) -> PamResult<Option<String>> {
-    getenv(self.handle, key)
-        .map(|opt| opt.map(|s| s.to_owned()))
-}
+        getenv(self.handle, key).map(|opt| opt.map(|s| s.to_owned()))
+    }
 
-
+    pub fn set_env(&mut self, key: &str, value: &str) -> PamResult<()> {
+        let env = format!("{}={}", key, value);
+        putenv(self.handle, &env)
+    }
 }
 
 impl<'a> Drop for NoPasswordClient<'a> {
     fn drop(&mut self) {
         let mut result = PamReturnCode::Success;
         if self.has_open_session && self.close_on_drop {
-            result=close_session(self.handle, false);
+            result = close_session(self.handle, false);
         }
         end(self.handle, result);
     }
 }
 
 /// A minimalistic conversation handler
-pub struct SimpleConv {
-}
+pub struct SimpleConv {}
 
 impl SimpleConv {
     /// Create a new `PasswordConv` handler
     pub fn new() -> SimpleConv {
-        SimpleConv {
-        }
+        SimpleConv {}
     }
 }
 
