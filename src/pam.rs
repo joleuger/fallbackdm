@@ -44,7 +44,7 @@ use std::mem;
 pub struct PasswordlessClient<'a> {
     /// Flag indicating whether the Client should close the session on drop
     pub close_on_drop: bool,
-    conversation: Box<SimpleConv>,
+    _conversation: Box<SimpleConv>,
     handle: &'a mut PamHandle,
     is_authenticated: bool,
     has_open_session: bool,
@@ -60,7 +60,7 @@ impl<'a> PasswordlessClient<'a> {
         let handle = start(service, None, &conv)?;
         Ok(PasswordlessClient {
             close_on_drop: true,
-            conversation,
+            _conversation: conversation,
             handle,
             is_authenticated: false,
             has_open_session: false,
