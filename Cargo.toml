@@ -1,10 +1,10 @@
 [package]
 name = "fallbackdm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "Logind-managed fallback graphical session when no compositor is active"
-repository = "https://github.com/yourname/fallbackdm"
+repository = "https://github.com/joleuger/fallbackdm"
 keywords = ["logind", "vt", "seat"]
 categories = ["os::linux-apis"]
 authors = ["Johannes Leupolz <dev@leupolz.eu>"]
