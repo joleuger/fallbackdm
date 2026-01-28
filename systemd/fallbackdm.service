@@ -1,0 +1,19 @@
+[Unit]
+Description=Fallback Display Manager (Headless VT Mute)
+# Stop this if a real display manager (GDM/SDDM/Greetd) starts
+#Conflicts=display-manager.service
+#After=systemd-user-sessions.service
+# Ensure it only runs on the physical console
+ConditionPathExists=/dev/tty1
+
+[Service]
+ExecStart=/usr/local/bin/fallbackdm
+# Essential for logind to know which VT to mute
+TTYPath=/dev/tty1
+#StandardInput=tty
+# Running as root is required for PAM/logind session registration
+#User=root
+#Restart=always
+
+[Install]
+WantedBy=multi-user.target
