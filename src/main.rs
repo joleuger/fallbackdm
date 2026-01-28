@@ -22,17 +22,32 @@ mod pam;
 const KDGKBMODE: u64 = 0x4B44; // gets current keyboard mode
 const K_OFF: u64 = 0x04;
 
-fn start_pam_session() -> anyhow::Result<String> {
-    let mut client = NoPasswordClient::new_client("fallbackdm").expect("Failed to init PAM client.");
+// busctl monitor --system org.freedesktop.login1 \ /org/freedesktop/login1
+
+// can be found via
+// busctl --system list
+// busctl introspect --system org.freedesktop.Notifications
+
+// loginctl session-status
+// loginctl show-session
+
+fn start_pam_session<'a>() -> anyhow::Result<(NoPasswordClient<'a>, String)> {
+    let mut client =
+        NoPasswordClient::new_client("fallbackdm").expect("Failed to init PAM client.");
+
+    client.set_env("PAM_TTY", "tty1")?;
+    client.set_env("XDG_VTNR", "1")?;
 
     // Actually try to authenticate:
     client.authenticate().expect("Authentication failed!");
     // Now that we are authenticated, it's possible to open a sesssion:
     client.open_session().expect("Failed to open a session!");
 
-    let session_id= client.get_env("XDG_SESSION_ID")?.expect("XDG_SESSION_ID is empty");
+    let session_id = client
+        .get_env("XDG_SESSION_ID")?
+        .expect("XDG_SESSION_ID is empty");
 
-    Ok(session_id)
+    Ok((client, session_id))
 }
 
 fn connect_to_dbus() -> anyhow::Result<Connection> {
@@ -44,19 +59,24 @@ fn connect_to_dbus() -> anyhow::Result<Connection> {
 fn send_take_control_message(conn: &Connection, session: &str) -> anyhow::Result<()> {
     // https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
 
-    // can be found via
-    // busctl --system list
-    // busctl introspect --system org.freedesktop.Notifications
     let node = format!("/org/freedesktop/login1/session/{}", session);
 
     // create a wrapper struct around the connection
     let proxy = conn.with_proxy("org.freedesktop.login1", &node, Duration::from_millis(5000));
 
-    // introspect for debugging
-    let (xml,): (String,) =
-        proxy.method_call("org.freedesktop.DBus.Introspectable", "Introspect", ())?;
+    // get properties
+    let (propmap,): (dbus::arg::PropMap,) = proxy.method_call(
+        "org.freedesktop.DBus.Properties",
+        "GetAll",
+        ("org.freedesktop.login1.Session",),
+    )?;
+    let mut properties = String::new();
+    for (name, value) in propmap {
+        let prop = format!("{} = {:?}\n", name, value.0);
+        properties.push_str(&prop);
+    }
 
-    debug!("introspect dbus node {}: {}", &node, xml);
+    debug!("get properties from dbus node {}: {}", &node, properties);
 
     // Now make the method call. The ListNames method call takes zero input parameters and
     // one output parameter which is an array of strings.
@@ -120,7 +140,7 @@ fn take_control() -> anyhow::Result<()> {
 
     // Step 1: Create systemd-logind session
     info!("Start systemd-logind session with PAM");
-    let session_id = start_pam_session()?;
+    let (client, session_id) = start_pam_session()?;
 
     // Step 2: Connect to logind via D-Bus
     info!("Connect to logind via D-Bus");
