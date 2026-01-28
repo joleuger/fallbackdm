@@ -17,6 +17,8 @@ On modern Linux systems:
 
 **fallbackdm fills this gap by acting as a silent, headless placeholder session.**
 
+Note: `fallbackdm` is very likely not needed when kmscon is running. This is very likely the solution that works natively with Fedora 44+ (see [phoronix.com](https://www.phoronix.com/news/Fedora-44-Considers-KMSCON)).
+
 ---
 
 ## What fallbackdm Does
