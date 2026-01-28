@@ -2,20 +2,18 @@
 //
 // Author: Johannes Leupolz <dev@leupolz.eu>
 
-// apt install libdbus-1-dev pkg-config libpam0g-dev
+// apt install libdbus-1-dev pkg-config libpam0g-dev libinput-dev libinput10
 
 use std::fs::OpenOptions;
 use std::io;
 use std::os::fd::AsRawFd;
-use std::time;
 use std::time::Duration;
 
 use dbus::blocking::Connection;
 use log::{debug, error, info, warn};
 
-use std::thread;
-
 use crate::pam::PasswordlessClient;
+mod input;
 mod pam;
 
 // see include/uapi/linux/kd.h
@@ -140,7 +138,7 @@ fn take_control() -> anyhow::Result<()> {
 
     // Step 1: Create systemd-logind session
     info!("Start systemd-logind session with PAM");
-    let (client, session_id) = start_pam_session()?;
+    let (_client, session_id) = start_pam_session()?;
 
     // Step 2: Connect to logind via D-Bus
     info!("Connect to logind via D-Bus");
@@ -153,8 +151,11 @@ fn take_control() -> anyhow::Result<()> {
     check_vt_status();
 
     // Step 4: Wait 120 seconds
-    info!("Wait 120 seconds");
-    thread::sleep(time::Duration::from_secs(120));
+    //info!("Wait 120 seconds");
+    //thread::sleep(time::Duration::from_secs(120));
+
+    // Step 4: Wait for input event
+    input::wait_for_keyboard_event();
 
     // Step 5: Release control
     info!("Release control");

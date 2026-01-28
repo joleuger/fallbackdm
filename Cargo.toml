@@ -7,6 +7,7 @@ description = "Logind-managed fallback graphical session when no compositor is a
 repository = "https://github.com/yourname/fallbackdm"
 keywords = ["logind", "vt", "seat"]
 categories = ["os::linux-apis"]
+authors = ["Johannes Leupolz <dev@leupolz.eu>"]
 
 [dependencies]
 libc = "0.2"
@@ -16,6 +17,7 @@ anyhow = "1.0"
 dbus = "0.9"
 pam = "0.8"
 time = "0.3" 
+input = "0.9.1"
 
 [build-dependencies]
 pkg-config = "0.3"
