@@ -1,4 +1,11 @@
-// this is basically a clone of pam/client.rs with a getenv function.
+// SPDX-License-Identifier: MIT
+//
+// Author: Johannes Leupolz <dev@leupolz.eu>
+// Original Author: Florian Wilkens <gh@1wilkens.org>
+//
+// this is basically a clone of pam/client.rs of https://crates.io/crates/pam
+// - with added get_env and set_env functions,
+// - stripped from everything that I don't need for fallbackdm.
 
 use std::ffi::{CStr, CString};
 
@@ -34,7 +41,7 @@ use std::mem;
 ///
 /// By default, the `Client` will close any opened session when dropped. If you don't
 /// want this, you can change its `close_on_drop` field to `False`.
-pub struct NoPasswordClient<'a> {
+pub struct PasswordlessClient<'a> {
     /// Flag indicating whether the Client should close the session on drop
     pub close_on_drop: bool,
     conversation: Box<SimpleConv>,
@@ -44,14 +51,14 @@ pub struct NoPasswordClient<'a> {
     last_code: PamReturnCode,
 }
 
-impl<'a> NoPasswordClient<'a> {
+impl<'a> PasswordlessClient<'a> {
     /// Create a new `Client` with the given service name
-    pub fn new_client(service: &str) -> PamResult<NoPasswordClient<'a>> {
+    pub fn new_client(service: &str) -> PamResult<PasswordlessClient<'a>> {
         let mut conversation = Box::new(SimpleConv::new());
         let conv = into_pam_conv(&mut *conversation);
 
         let handle = start(service, None, &conv)?;
-        Ok(NoPasswordClient {
+        Ok(PasswordlessClient {
             close_on_drop: true,
             conversation,
             handle,
@@ -99,7 +106,7 @@ impl<'a> NoPasswordClient<'a> {
     }
 }
 
-impl<'a> Drop for NoPasswordClient<'a> {
+impl<'a> Drop for PasswordlessClient<'a> {
     fn drop(&mut self) {
         let mut result = PamReturnCode::Success;
         if self.has_open_session && self.close_on_drop {

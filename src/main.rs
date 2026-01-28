@@ -15,7 +15,7 @@ use log::{debug, error, info, warn};
 
 use std::thread;
 
-use crate::pam::NoPasswordClient;
+use crate::pam::PasswordlessClient;
 mod pam;
 
 // see include/uapi/linux/kd.h
@@ -31,9 +31,9 @@ const K_OFF: u64 = 0x04;
 // loginctl session-status
 // loginctl show-session
 
-fn start_pam_session<'a>() -> anyhow::Result<(NoPasswordClient<'a>, String)> {
+fn start_pam_session<'a>() -> anyhow::Result<(PasswordlessClient<'a>, String)> {
     let mut client =
-        NoPasswordClient::new_client("fallbackdm").expect("Failed to init PAM client.");
+        PasswordlessClient::new_client("fallbackdm").expect("Failed to init PAM client.");
 
     client.set_env("PAM_TTY", "tty1")?;
     client.set_env("XDG_VTNR", "1")?;
