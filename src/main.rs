@@ -15,26 +15,22 @@ use log::{debug, error, info, warn};
 
 use std::thread;
 
-use pam::Client;
+use crate::pam::NoPasswordClient;
+mod pam;
 
 // see include/uapi/linux/kd.h
 const KDGKBMODE: u64 = 0x4B44; // gets current keyboard mode
 const K_OFF: u64 = 0x04;
 
 fn start_pam_session() -> anyhow::Result<String> {
-    let mut client = Client::with_password("fallbackdm").expect("Failed to init PAM client.");
-    client
-        .conversation_mut()
-        .set_credentials("root", "irrelevant");
+    let mut client = NoPasswordClient::new_client("fallbackdm").expect("Failed to init PAM client.");
 
     // Actually try to authenticate:
     client.authenticate().expect("Authentication failed!");
     // Now that we are authenticated, it's possible to open a sesssion:
     client.open_session().expect("Failed to open a session!");
 
-    // Get the current process's session ID from systemd-logind
-    // read from /proc/self/sessionid
-    let session_id = std::fs::read_to_string("/proc/self/sessionid")?;
+    let session_id= client.get_env("XDG_SESSION_ID")?.expect("XDG_SESSION_ID is empty");
 
     Ok(session_id)
 }
