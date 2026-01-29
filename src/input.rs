@@ -12,6 +12,8 @@ use std::os::unix::{fs::OpenOptionsExt, io::OwnedFd};
 use std::path::Path;
 
 use libc::{O_RDONLY, O_RDWR, O_WRONLY};
+use nix::poll::{self, PollFd, PollFlags, PollTimeout};
+use std::os::fd::{AsRawFd, BorrowedFd};
 
 pub struct Interface;
 
@@ -33,7 +35,13 @@ impl LibinputInterface for Interface {
 pub fn wait_for_keyboard_event() {
     let mut input = Libinput::new_with_udev(Interface);
     input.udev_assign_seat("seat0").unwrap();
+    let fd = unsafe { BorrowedFd::borrow_raw(input.as_raw_fd()) };
+    let mut fds = [PollFd::new(fd, PollFlags::POLLIN)];
+
     loop {
+        // Wait for events instead of busy-looping
+        poll::poll(&mut fds, PollTimeout::NONE).unwrap();
+
         input.dispatch().unwrap();
         for event in &mut input {
             match &event {

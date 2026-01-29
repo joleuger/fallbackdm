@@ -18,6 +18,7 @@ dbus = "0.9"
 pam = "0.8"
 time = "0.3" 
 input = "0.9.1"
+nix = { version = "0.31", features = ["poll"] }
 
 [build-dependencies]
 pkg-config = "0.3"
