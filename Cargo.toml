@@ -1,6 +1,6 @@
 [package]
 name = "fallbackdm"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT"
 description = "Logind-managed fallback graphical session when no compositor is active"
